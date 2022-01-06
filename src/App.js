@@ -61,11 +61,18 @@ const App = () => {
             .update(duplicatePerson.id, changedPerson)
             .then(returnedPerson => {
               // update state of notes with new array via map method
-              // if the note id doesn't equal the function argument id
-              // then set note in new array to equal old note
-              // otherwise set it to the new note with changed important value
-              return setPersons(persons.map(person => person.id !== duplicatePerson.id ? person : returnedPerson))
+              // if the person id doesn't equal the id of the duplicatePerson
+              // then set the person in the new array to equal the old person
+              // otherwise set it to the new person with changed number
+              setPersons(persons.map(person => person.id !== duplicatePerson.id ? person : returnedPerson))
+              setNewName('')
+              setNewNumber('')
+              return
           })
+        } else {
+          setNewName('')
+          setNewNumber('')
+          return
         }
       }
       return
