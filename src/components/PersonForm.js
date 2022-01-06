@@ -11,7 +11,8 @@ const PersonForm = (props) => {
     handleNumberChange,
     filteredName,
     filteredPersons,
-    persons
+    persons,
+    deletePerson
   } = props
 
   return (
@@ -32,22 +33,28 @@ const PersonForm = (props) => {
           </div>
         </div>
         <div>
-          <h2>People:</h2>
-          <ul>
-          {filteredName === '' ?
-            persons.map(person => 
-              <Person key={Math.random()} person={person} />
-            ) :
-            filteredPersons.map(person => 
-              <Person key={Math.random()} person={person} />
-            )
-          }
-          </ul>
-        </div>
-        <div>
           <button type="submit">add</button>
         </div>
       </form>
+      <div>
+          <h3>People:</h3>
+          {filteredName === '' ?
+            persons.map(person => 
+              <Person
+                key={Math.random()}
+                person={person}
+                deletePerson={deletePerson}
+              />
+            ) :
+            filteredPersons.map(person => 
+              <Person
+                key={Math.random()}
+                person={person}
+                deletePerson={deletePerson}
+              />
+            )
+          }
+        </div>
     </div>
   )
 }

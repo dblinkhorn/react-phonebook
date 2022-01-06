@@ -2,6 +2,7 @@ import axios from 'axios'
 import React, { useState, useEffect } from 'react'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
+import phonebookService from './services/phonebook'
 
 const App = () => {
 
@@ -20,6 +21,22 @@ const App = () => {
       })
   }, [])
 
+  const checkDuplicateName = (name) => {
+    for (let person of persons) {
+      if (name === person.name) {
+        return true
+      } return false
+    }
+  }
+
+  const checkDuplicateNumber = (number) => {
+    for (let person of persons) {
+      if (number === person.number) {
+        return true
+      } return false
+    }
+  }
+
   const addPerson = (event) => {
     event.preventDefault()
 
@@ -28,7 +45,29 @@ const App = () => {
     }
 
     if (checkDuplicateName(newName)) {
-      alert(`${newName} already exists.`)
+      if (checkDuplicateNumber(newNumber)) {
+        alert(`${newName} already exists.`)
+        return
+      } else {
+        console.log(persons);
+        const [duplicatePerson] = persons.filter(person => person.name === newName)
+        console.log(duplicatePerson);
+        if (window.confirm(`${duplicatePerson.name} already exists. Do you want to replace the old number?`)) {
+          const changedPerson = {...duplicatePerson, number: newNumber}
+          console.log(changedPerson)
+
+          phonebookService
+            // replace given person on server with changedPerson
+            .update(duplicatePerson.id, changedPerson)
+            .then(returnedPerson => {
+              // update state of notes with new array via map method
+              // if the note id doesn't equal the function argument id
+              // then set note in new array to equal old note
+              // otherwise set it to the new note with changed important value
+              return setPersons(persons.map(person => person.id !== duplicatePerson.id ? person : returnedPerson))
+          })
+        }
+      }
       return
     }
 
@@ -37,9 +76,30 @@ const App = () => {
       number: newNumber
     }
 
-    setPersons(persons.concat(newPersonObject))
-    setNewName('')
-    setNewNumber('')
+    // adds new person to server
+    phonebookService
+      .create(newPersonObject)
+      .then(returnedPerson => {
+        // adds post response to persons state
+        setPersons(persons.concat(returnedPerson))
+        // resets newName & newNumber state to be empty strings
+        setNewName('')
+        setNewNumber('')
+      })
+  }
+
+  // toggles 'important' value of given note
+  const deletePerson = (id) => {
+    // get the person whose id matches the id passed as argument
+    const person = persons.find(person => person.id === id)
+    if (window.confirm(`Do you really want to delete ${person.name}?`)) {
+      phonebookService
+        // replace given note on server with changeNote
+        .removeObject(person.id)
+      
+      // update state to remove deleted person
+      setPersons(persons.filter(person => person.id !== id))
+    }
   }
 
   const handleNameChange = (event) => {
@@ -61,14 +121,6 @@ const App = () => {
     }
   }
 
-  const checkDuplicateName = (name) => {
-    for (let person of persons) {
-      if (name === person.name) {
-        return true
-      } return false
-    }
-  }
-
   const filteredPersons = persons.filter(person => {
     if (person.name
           .toLowerCase()
@@ -79,7 +131,7 @@ const App = () => {
 
   return (
     <div>
-      <h2>Phonebook</h2>
+      <h2>React Phonebook</h2>
       <Filter
         filteredName={filteredName}
         handleFilteredNameChange={handleFilteredNameChange}
@@ -93,6 +145,7 @@ const App = () => {
         filteredName={filteredName}
         filteredPersons={filteredPersons}
         persons={persons}
+        deletePerson={deletePerson}
       />
     </div>
   )
