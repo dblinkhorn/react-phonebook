@@ -10,6 +10,7 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filteredName, setFilteredName] = useState('')
+  const [notification, setNotification] = useState(null)
 
   // get persons data from dev server
   useEffect(() => {
@@ -37,6 +38,13 @@ const App = () => {
     }
   }
 
+  // resets newName & newNumber state to be empty strings
+  const resetForms = () => {
+    setNewName('')
+    setNewNumber('')
+    return
+  }
+
   const addPerson = (event) => {
     event.preventDefault()
 
@@ -46,15 +54,18 @@ const App = () => {
 
     if (checkDuplicateName(newName)) {
       if (checkDuplicateNumber(newNumber)) {
-        alert(`${newName} already exists.`)
-        return
+        // update state of notification
+        setNotification(
+          `${newName} already exists.`
+        )
+        setTimeout(() => {
+          setNotification(null)
+        }, 5000)
+        resetForms()
       } else {
-        console.log(persons);
         const [duplicatePerson] = persons.filter(person => person.name === newName)
-        console.log(duplicatePerson);
         if (window.confirm(`${duplicatePerson.name} already exists. Do you want to replace the old number?`)) {
           const changedPerson = {...duplicatePerson, number: newNumber}
-          console.log(changedPerson)
 
           phonebookService
             // replace given person on server with changedPerson
@@ -65,14 +76,17 @@ const App = () => {
               // then set the person in the new array to equal the old person
               // otherwise set it to the new person with changed number
               setPersons(persons.map(person => person.id !== duplicatePerson.id ? person : returnedPerson))
-              setNewName('')
-              setNewNumber('')
-              return
+              resetForms()
+
+              setNotification(
+                `${newName}'s number updated.`
+              )
+              setTimeout(() => {
+                setNotification(null)
+              }, 5000)
           })
         } else {
-          setNewName('')
-          setNewNumber('')
-          return
+          resetForms()
         }
       }
       return
@@ -89,9 +103,16 @@ const App = () => {
       .then(returnedPerson => {
         // adds post response to persons state
         setPersons(persons.concat(returnedPerson))
-        // resets newName & newNumber state to be empty strings
-        setNewName('')
-        setNewNumber('')
+
+        // update state of notification to display
+        // confirmation of newly added user
+        setNotification(
+          `'${returnedPerson.name}' added.`
+        )
+        setTimeout(() => {
+          setNotification(null)
+        }, 5000)
+        resetForms()
       })
   }
 
@@ -103,7 +124,24 @@ const App = () => {
       phonebookService
         // replace given note on server with changeNote
         .removeObject(person.id)
-      
+        .catch(error => {
+          setNotification(
+            `'${person.name}' already removed.`
+          )
+          setTimeout(() => {
+            setNotification(null)
+          }, 5000)
+        })
+
+        // update state of notification to display
+        // confirmation of newly removed user
+        setNotification(
+          `'${person.name}' removed.`
+        )
+        setTimeout(() => {
+          setNotification(null)
+        }, 5000)
+
       // update state to remove deleted person
       setPersons(persons.filter(person => person.id !== id))
     }
@@ -153,6 +191,7 @@ const App = () => {
         filteredPersons={filteredPersons}
         persons={persons}
         deletePerson={deletePerson}
+        notification={notification}
       />
     </div>
   )

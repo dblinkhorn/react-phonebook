@@ -1,5 +1,6 @@
 import React from 'react'
 import Person from './Person'
+import Notification from './Notification'
 
 const PersonForm = (props) => {
   
@@ -12,7 +13,8 @@ const PersonForm = (props) => {
     filteredName,
     filteredPersons,
     persons,
-    deletePerson
+    deletePerson,
+    notification
   } = props
 
   return (
@@ -36,6 +38,7 @@ const PersonForm = (props) => {
           <button type="submit">add</button>
         </div>
       </form>
+      {notification && <Notification notification={notification} />}
       <div>
           <h3>People:</h3>
           {filteredName === '' ?
